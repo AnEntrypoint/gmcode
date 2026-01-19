@@ -28,20 +28,33 @@ jobs:
 
       - name: Update code search index
         run: |
-          echo "Indexing code folder with search..."
-          npx -y gxe@latest AnEntrypoint/code-search "search" > search-index.log 2>&1 || true
+          echo "Indexing code discoveries from code/ folder..."
+          cd code
+          # Run code-search with dummy query to trigger indexing
+          npx -y gxe@latest AnEntrypoint/code-search "" > ../search-index.log 2>&1 || true
+          cd ..
+
+          # Move database from code/.code-search to root .code-search
+          if [ -d "code/.code-search" ]; then
+            rm -rf .code-search 2>/dev/null || true
+            mv code/.code-search .
+          fi
+
+          # Remove .code-search/ from .gitignore added by code-search
+          sed -i '/.code-search\//d' .gitignore 2>/dev/null || true
+
           echo "✓ Search index updated"
 
       - name: Commit search database
         run: |
           git config --global user.name "github-actions"
           git config --global user.email "github-actions@github.com"
-          
-          # Check if .code-search/ exists and has database files
-          if [ -d ".code-search" ] && [ -f ".code-search/lancedb.db" ] || [ -f ".code-search/database.db" ]; then
-            git add .code-search/ 2>/dev/null || true
+
+          # Check if .code-search/ exists
+          if [ -d ".code-search" ]; then
+            git add .code-search/
             git add search-index.log 2>/dev/null || true
-            
+
             if ! git diff --cached --quiet; then
               git commit -m "Update search index from code discoveries"
               git push origin main
