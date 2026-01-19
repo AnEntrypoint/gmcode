@@ -1,0 +1,6 @@
+name = "gmcode-hook"
+main = "src/index.ts"
+compatibility_date = "2025-01-19"
+
+[env.production]
+name = "gmcode-hook"

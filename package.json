@@ -1,0 +1,16 @@
+{
+  "name": "gmcode-hook",
+  "version": "1.0.0",
+  "description": "Wrangler hook to add files to AnEntrypoint/gmcode",
+  "main": "src/index.ts",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy"
+  },
+  "keywords": ["wrangler", "cloudflare", "github"],
+  "author": "lanmower",
+  "license": "MIT",
+  "devDependencies": {
+    "wrangler": "^4.54.0"
+  }
+}
