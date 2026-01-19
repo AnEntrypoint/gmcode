@@ -1,0 +1,60 @@
+name: Update Code Search Index
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'code/**'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  update-search-index:
+    runs-on: ubuntu-latest
+    name: Index code discoveries with search
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Update code search index
+        run: |
+          echo "Indexing code folder with search..."
+          npx -y gxe@latest AnEntrypoint/code-search "search" > search-index.log 2>&1 || true
+          echo "✓ Search index updated"
+
+      - name: Commit search database
+        run: |
+          git config --global user.name "github-actions"
+          git config --global user.email "github-actions@github.com"
+          
+          # Check if .code-search/ exists and has database files
+          if [ -d ".code-search" ] && [ -f ".code-search/lancedb.db" ] || [ -f ".code-search/database.db" ]; then
+            git add .code-search/ 2>/dev/null || true
+            git add search-index.log 2>/dev/null || true
+            
+            if ! git diff --cached --quiet; then
+              git commit -m "Update search index from code discoveries"
+              git push origin main
+            else
+              echo "No changes to commit"
+            fi
+          else
+            echo "No database found to commit"
+          fi
+
+      - name: Upload index log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: search-index-log
+          path: search-index.log

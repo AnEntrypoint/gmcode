@@ -5,3 +5,5 @@ dist/
 build/
 *.wrangler
 .wrangler
+.code-search/*.tmp
+.code-search/*.log
